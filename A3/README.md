@@ -1,0 +1,1 @@
+Contains program for the Unix domain sockets IPC (flow-controlled).
