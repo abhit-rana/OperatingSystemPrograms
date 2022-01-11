@@ -1,0 +1,102 @@
+7c7,11
+< 
+---
+> #include <linux/slab.h>
+> #include <linux/string.h>
+> #include <linux/semaphore.h>
+> #include <linux/cdev.h>
+> #include <linux/proc_fs.h>
+134a139,144
+> /* this is used for defination by me*/
+> static char *myQueue[6];
+> static int countM = 0;
+> static struct semaphore semEmpty;
+> static struct semaphore semFull;
+> static int help = 0;
+201a212,297
+> 
+> 
+> void enqueue(char *data){
+> 	static int in = 5;
+> 	down(&semEmpty);
+> 	if(in<0){
+> 		in = 5;
+> 	}
+> 	memcpy(myQueue[in], data, 8);
+> 	in--;
+> 	countM++;
+> 	up(&semFull);
+> }
+> 
+> void dequeue(char *temp){
+> 	static int out = 5;
+> 	down(&semFull);
+> 	if(out<0){
+> 		out = 5;
+> 	}
+> 	memcpy(temp, myQueue[out], 8);
+> 	out--;
+> 	countM--;
+> 	up(&semEmpty);
+> }
+> 
+> int allocateMemory(void){
+> 	int i = 0;
+> 	sema_init(&semEmpty, 6);
+> 	sema_init(&semFull, 0);
+> 	help = 1;
+> 	while(i<6){
+> 		myQueue[i] = (char*)kmalloc(8, GFP_KERNEL);
+> 		if(myQueue[i]==NULL){
+> 			return -ENOMEM;
+> 		}
+> 		i++;
+> 	}
+> 	return 0;	
+> }
+> 
+> 
+> SYSCALL_DEFINE1(writer, char *, msg)
+> {
+> 	char buf[8];
+> 	long copied;
+> 	if(help!=1){
+> 		allocateMemory();
+> 	}
+> 	copied = __copy_from_user(buf, msg, sizeof(buf));
+> 	if(copied<0 || copied == sizeof(buf)){
+> 		printk(KERN_INFO "i am in writer and there is some error in copy\n");
+> 		return -EFAULT;
+> 	}
+> 	enqueue(buf);
+> 	return 0;
+> }
+> 
+> SYSCALL_DEFINE1(reader, char *, msg)
+> {
+> 	long copied;
+> 	char buf[8];
+> 	dequeue(buf);
+> 	if(help!=1){
+> 		allocateMemory();
+> 	}
+> 	copied = __copy_to_user(msg, buf, sizeof(buf));
+> 	if(copied<0 || copied == sizeof(buf)){
+> 		printk(KERN_INFO "i am in reader and there is some error in copy\n");
+> 		return -EFAULT;
+> 	}
+> 	return 0;
+> }
+> 
+> 
+> 
+> 
+> 
+> 
+> /*
+> SYSCALL_DEFINE1(hello_world, void){
+> 	printk("hello world\n");
+> 	return 0;
+> }
+> */
+> 
