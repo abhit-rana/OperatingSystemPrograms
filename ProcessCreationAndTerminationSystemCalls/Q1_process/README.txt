@@ -1,0 +1,18 @@
+Executable file: process
+Object file: Q1p.o
+Assembly file: Q1p.s
+Source file: Q1p.c
+
+command to run the file:
+make
+./process
+
+all in b/w files created by themselves or can be compiled by individual target specified in the Makefile
+
+1. main function starts executing
+2. child process is created by fork() system call; the value of the integer returned is checked for negative(it happens when child process is not created), if yes then the parent process is terminated by calling to the exit(-1) system call with -1 to indicate some error occured in the program and that error occured is indicated by the print statement
+3. if child process is created then the function void CalcAvg(void* arg) is called in the child process and A character is passes in the form of char array
+4. while the child process starts the execution of the CalcAvg function till that time parent process is waited for it's rest of the execution with the help of the system call waitpid(pid, NULL, 0) where the pid is the processs id of the children process for whom the parent process is kept in wait and argument 3 is passed 0 to indicate for the child process until its termination and since we are waiting until execution therefore we passes second argument as NULL as there is no need to store the status innformation
+5. in ongoing child process open system call is made to get the file descriptor and then we check for that descriptor value if it is negative then we terminates the execution by calling to exit system call
+6. after we get the file descriptor we call the read(fd, buff, 1) system call by passing file descriptor, array in which to load the read value and 1 as no of bytes to read from the file and then checks the return value by the read() function and if the return value is negative then then the process is terminated by calling the system call exit otherwise we create an float array of size 6 whose each index(ith say) will store the sum of (i+1)th assignment marks of the students. Now a while loop starts in the function fetches the character from the file one by one and stores it into the array named arr[] until we get the new line character(coming of new line character indicates that the characters in between the two new line character which occurr at the end of the file  from the fie and as we get the new line character we then starts an inner loop which parses the read characters in the arr[] on the basis of comma character and gives the marks of a praticular student in form of tokens for the six assignments and then each of this token is added to the array storing 6 assignment marks and this procedure is repeated for all the students. after the marks of each student all assignments is added to the assignment marks array then we print the average of each assignment marks by dividing the marks accumulated in the ith index of array with the number of students in the required section and and then we end the process by calling exit system call 
+7. as the parent processes was suspended by the waitpid call so it waits for the response from the waitpid system call and then we checks the return value from it and if the return value is negative then we call the exit system call along with printing of the error message otherwise the parent processes carry on its execution and calls the same CalcAvg function but with character array storing 'B' as its value for section B and then execution inside the function would be same as it happened for the child process.
